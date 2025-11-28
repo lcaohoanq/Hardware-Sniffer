@@ -3,11 +3,11 @@ import sys
 import json
 import plistlib
 import shutil
+import subprocess
 import zipfile
 
 class Utils:
-    def __init__(self, script_name = "Hardware Sniffer", rich_format=True):
-        self.rich_format = rich_format
+    def __init__(self, script_name = "Hardware Sniffer"):
         self.script_name = script_name
     
     def get_full_path(self, *path):
@@ -126,80 +126,49 @@ class Utils:
         return next((item for item in data[start:end] if item.lower() in search_item.lower()), None)
 
     def request_input(self, prompt="Press Enter to continue..."):
-        if sys.version_info[0] < 3:
-            user_response = raw_input(prompt)
-        else:
+        try:
             user_response = input(prompt)
+        except NameError:
+            user_response = raw_input(prompt)
         
         if not isinstance(user_response, str):
             user_response = str(user_response)
         
         return user_response
 
-    def progress_bar(self, title, steps, current_step_index, done=False):
-        self.head(title)
-        print("")
-        if done:
-            for step in steps:
-                print("  [{}] {}".format("\033[92m✓\033[0m" if self.rich_format else "*", step))
-        else:
-            for i, step in enumerate(steps):
-                if i < current_step_index:
-                    print("  [{}] {}".format("\033[92m✓\033[0m" if self.rich_format else "*", step))
-                elif i == current_step_index:
-                    print("  [{}] {}".format("\033[1;93m>\033[0m" if self.rich_format else ">", step))
-                else:
-                    print("  [ ] {}".format(step))
-        print("")
+    def clear_screen(self):
+    	os.system('cls' if os.name=='nt' else 'clear')
 
     def head(self, text = None, width = 68, resize=True):
+        if resize:
+            self.adjust_window_size()
+        self.clear_screen()
         if text == None:
             text = self.script_name
+        separator = "#" * width
+        title = " {} ".format(text)
+        if len(title) > width - 2:
+            title = title[:width-4] + "..."
+        title = title.center(width - 2)  # Center the title within the width minus 2 for the '#' characters
         
-        os.system('cls' if os.name=='nt' else 'clear')
-
-        if self.rich_format:
-            if resize:
-                self.adjust_window_size()
-
-            separator = "═" * (width - 2)
-            title = " {} ".format(text)
-            if len(title) > width - 2:
-                title = title[:width-4] + "..."
-            title = title.center(width - 2)
-            print("╔{}╗\n║{}║\n╚{}╝".format(separator, title, separator))
-        else:
-            print(text)
+        print("{}\n#{}#\n{}".format(separator, title, separator))
     
     def adjust_window_size(self, content=""):
         lines = content.splitlines()
         rows = len(lines)
         cols = max(len(line) for line in lines) if lines else 0
-        print('\033[8;{};{}t'.format(max(rows+6, 30), max(cols+2, 100)))
+        print('\033[8;{};{}t'.format(max(rows+10, 24), max(cols+2, 80)))
 
     def exit_program(self):
         self.head()
-        width = 68
         print("")
-        print("For more information, to report errors, or to contribute to the product:".center(width))
+        print("For more information, to report errors, or to contribute to the product:")
+        print("* Facebook: https://www.facebook.com/macforce2601")
+        print("* Telegram: https://t.me/lzhoang2601")
+        print("* GitHub: https://github.com/lzhoang2801/OpCore-Simplify")
         print("")
 
-        separator = "─" * (width - 4)
-        print(f" ┌{separator}┐ ")
-        
-        contacts = {
-            "Facebook": "https://www.facebook.com/macforce2601",
-            "Telegram": "https://t.me/lzhoang2601",
-            "GitHub": "https://github.com/lzhoang2801/Hardware-Sniffer"
-        }
-        
-        for platform, link in contacts.items():
-            line = f" * {platform}: {link}"
-            print(f" │{line.ljust(width - 4)}│ ")
-
-        print(f" └{separator}┘ ")
+        print("Thank you for using our program!")
         print("")
-        print("Thank you for using our program!".center(width))
-        print("")
-        self.request_input("Press Enter to exit.".center(width))
+        self.request_input("Press Enter to exit.")
         sys.exit(0)

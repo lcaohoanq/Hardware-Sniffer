@@ -14,11 +14,11 @@ import subprocess
 c = wmi.WMI()
 
 class WindowsHardwareInfo:
-    def __init__(self, rich_format=True):
+    def __init__(self):
         self.lookup_codename = cpu_identifier.CPUIdentifier().lookup_codename
         self.classify_gpu = gpu_identifier.GPUIdentifier().classify_gpu
         self.get_device_location_paths = device_locator.WindowsDeviceLocator().get_device_location_paths
-        self.utils = utils.Utils(rich_format=rich_format)
+        self.utils = utils.Utils()
         self.usb_ids = self.utils.read_file(self.utils.get_full_path("Scripts", "datasets", "usb.ids"))
         self.pci_ids = self.utils.read_file(self.utils.get_full_path("Scripts", "datasets", "pci.ids"))
 
@@ -690,6 +690,10 @@ class WindowsHardwareInfo:
         return system_device_info
 
     def hardware_collector(self):
+        self.utils.head("Hardware Information Collection")
+        print("")
+        print("Please wait while we gather your hardware details")
+        print("")
         self.result = {}
 
         steps = [
@@ -710,11 +714,9 @@ class WindowsHardwareInfo:
             ('Gathering system devices', self.system_devices, "System Devices")
         ]
 
-        title = "Collecting hardware information"
-        step_names = [message for message, function, attribute in steps]
-
-        for index, (message, function, attribute) in enumerate(steps):
-            self.utils.progress_bar(title, step_names, index)
+        total_steps = len(steps)
+        for index, (message, function, attribute) in enumerate(steps, start=1):
+            print(f"[{index}/{total_steps}] {message}...")
             value = function()
             if not attribute:
                 continue
@@ -723,7 +725,6 @@ class WindowsHardwareInfo:
             else:
                 print("    - No {} found.".format(attribute.lower()))
 
-        self.utils.progress_bar(title, step_names, len(steps), done=True)
-
-        print("Hardware information collection complete!")
+        print("")
+        print("Hardware information collection complete.")
         time.sleep(1)
